@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.NoSuchFileException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -103,17 +104,18 @@ public class PopovIgorKVService implements KVService {
     }
 
     private void handleGet(HttpExchange exchange, String id) throws IOException {
-        byte[] response = dao.get(id);
-        if (response == null) {
-            exchange.sendResponseHeaders(STATUS_NOT_FOUND, -1);
-            return;
-        }
-        exchange.getResponseHeaders().set(CONTENT_TYPE_HEADER, OCTET_STREAM);
-        exchange.sendResponseHeaders(STATUS_OK, response.length == 0 ? -1 : response.length);
-        if (response.length > 0) {
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(response);
+        try {
+            byte[] response = dao.get(id);
+
+            exchange.getResponseHeaders().set(CONTENT_TYPE_HEADER, OCTET_STREAM);
+            exchange.sendResponseHeaders(STATUS_OK, response.length == 0 ? -1 : response.length);
+            if (response.length > 0) {
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
             }
+        } catch (NoSuchFileException e) {
+            exchange.sendResponseHeaders(STATUS_NOT_FOUND, -1);
         }
     }
 

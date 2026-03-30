@@ -27,10 +27,7 @@ public class PopovIgorKVDaoPersistent implements Dao<byte[]> {
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
         }
-        final Path file = this.storageDir.resolve(key);
-        if (!Files.exists(file)) {
-            return null;
-        }
+        final Path file = this.storageDir.resolve(Paths.get(key).getFileName().toString());
         return Files.readAllBytes(file);
     }
 
